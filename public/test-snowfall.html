@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snowfall API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #1a1a1a; color: #fff; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 10px; border: 1px solid #444; background: #333; color: #fff; border-radius: 4px; }
+        button { background: #4CAF50; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #45a049; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .success { background: #2d5a2d; border: 1px solid #4CAF50; }
+        .error { background: #5a2d2d; border: 1px solid #f44336; }
+        .tier-display { font-size: 18px; font-weight: bold; margin: 10px 0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px 0; }
+        .stat-item { background: #333; padding: 10px; border-radius: 4px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Snowfall API Test</h1>
+        <p>Test the Snowfall ranking system with scores 1-100</p>
+        
+        <form id="testForm">
+            <div class="form-group">
+                <label>Minecraft Username:</label>
+                <input type="text" id="minecraft_username" required placeholder="Steve">
+            </div>
+            
+            <div class="stats-grid">
+                <div class="form-group">
+                    <label>Playstyle (1-100):</label>
+                    <input type="number" id="playstyle" min="1" max="100" required placeholder="85">
+                </div>
+                <div class="form-group">
+                    <label>Movement (1-100):</label>
+                    <input type="number" id="movement" min="1" max="100" required placeholder="75">
+                </div>
+                <div class="form-group">
+                    <label>PvP (1-100):</label>
+                    <input type="number" id="pvp" min="1" max="100" required placeholder="90">
+                </div>
+                <div class="form-group">
+                    <label>Building (1-100):</label>
+                    <input type="number" id="building" min="1" max="100" required placeholder="65">
+                </div>
+                <div class="form-group">
+                    <label>Projectiles (1-100):</label>
+                    <input type="number" id="projectiles" min="1" max="100" required placeholder="80">
+                </div>
+            </div>
+            
+            <button type="submit">🚀 Test API</button>
+        </form>
+        
+        <div id="result"></div>
+        
+        <div style="margin-top: 30px; padding: 20px; background: #333; border-radius: 4px;">
+            <h3>📊 Tier Thresholds:</h3>
+            <div style="font-family: monospace; font-size: 14px;">
+                <div>🥇 <strong>HT1:</strong> avg ≥ 97</div>
+                <div>🥈 <strong>MT1:</strong> 93 ≤ avg ≤ 96.9</div>
+                <div>🥉 <strong>LT1:</strong> 89 ≤ avg ≤ 92.9</div>
+                <div>🏆 <strong>HT2:</strong> 84 ≤ avg ≤ 88.9</div>
+                <div>🏅 <strong>MT2:</strong> 80 ≤ avg ≤ 83.9</div>
+                <div>⭐ <strong>LT2:</strong> 76 ≤ avg ≤ 79.9</div>
+                <div>🔥 <strong>HT3:</strong> 71 ≤ avg ≤ 75.9</div>
+                <div>💎 <strong>MT3:</strong> 67 ≤ avg ≤ 70.9</div>
+                <div>💪 <strong>LT3:</strong> 63 ≤ avg ≤ 66.9</div>
+                <div>🎯 <strong>HT4:</strong> 58 ≤ avg ≤ 62.9</div>
+                <div>⚡ <strong>MT4:</strong> 54 ≤ avg ≤ 57.9</div>
+                <div>🌟 <strong>LT4:</strong> 50 ≤ avg ≤ 53.9</div>
+                <div>⚪ <strong>No Rank:</strong> avg < 50</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('testForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                minecraft_username: document.getElementById('minecraft_username').value,
+                playstyle: parseInt(document.getElementById('playstyle').value),
+                movement: parseInt(document.getElementById('movement').value),
+                pvp: parseInt(document.getElementById('pvp').value),
+                building: parseInt(document.getElementById('building').value),
+                projectiles: parseInt(document.getElementById('projectiles').value)
+            };
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>🔄 Testing...</p>';
+            
+            try {
+                const response = await fetch('/functions/v1/test-snowfall-api', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const avg = result.player.overall_score;
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <h3>✅ Success!</h3>
+                            <div class="tier-display">🏆 Tier: ${result.player.tier}</div>
+                            <p><strong>Overall Score:</strong> ${avg}/100</p>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div>🎮 Playstyle</div>
+                                    <div><strong>${result.player.playstyle}</strong></div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>🏃 Movement</div>
+                                    <div><strong>${result.player.movement}</strong></div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>⚔️ PvP</div>
+                                    <div><strong>${result.player.pvp}</strong></div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>🏗️ Building</div>
+                                    <div><strong>${result.player.building}</strong></div>
+                                </div>
+                                <div class="stat-item">
+                                    <div>🏹 Projectiles</div>
+                                    <div><strong>${result.player.projectiles}</strong></div>
+                                </div>
+                            </div>
+                            <p><em>${result.message}</em></p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>❌ Error</h3>
+                            <p>${result.error}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Network Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+        
+        // Pre-fill with example values
+        document.getElementById('minecraft_username').value = 'TestPlayer';
+        document.getElementById('playstyle').value = '85';
+        document.getElementById('movement').value = '78';
+        document.getElementById('pvp').value = '92';
+        document.getElementById('building').value = '67';
+        document.getElementById('projectiles').value = '81';
+    </script>
+</body>
+</html>

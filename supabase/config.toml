@@ -1,0 +1,7 @@
+project_id = "icekfttmjohsczyzphxz"
+
+[functions.test-snowfall-api]
+verify_jwt = false
+
+[functions.snowfall-api]
+verify_jwt = false
