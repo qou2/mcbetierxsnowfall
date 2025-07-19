@@ -2,13 +2,22 @@
 import { supabase } from "@/integrations/supabase/client"
 import { SnowfallPlayer, SnowfallTier, calculateSnowfallTier } from "@/types/snowfall"
 
-export async function getSnowfallLeaderboard(limit = 50, offset = 0): Promise<SnowfallPlayer[]> {
+export async function getSnowfallLeaderboard(limit?: number, offset?: number): Promise<SnowfallPlayer[]> {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from("snowfall_players")
       .select("*")
       .order("overall_score", { ascending: false })
-      .range(offset, offset + limit - 1)
+    
+    if (limit) {
+      query = query.limit(limit)
+    }
+    
+    if (offset) {
+      query = query.range(offset, offset + (limit || 50) - 1)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error("Error fetching Snowfall leaderboard:", error)
@@ -98,6 +107,83 @@ export async function addSnowfallRank(
     }
   } catch (error) {
     console.error("Error in addSnowfallRank:", error)
+    throw error
+  }
+}
+
+export async function getSnowfallPlayerByUsername(username: string): Promise<SnowfallPlayer | null> {
+  try {
+    const { data, error } = await supabase
+      .from("snowfall_players")
+      .select("*")
+      .eq("minecraft_username", username.trim())
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows found
+        return null
+      }
+      console.error("Error fetching Snowfall player:", error)
+      throw new Error(`Failed to fetch player: ${error.message}`)
+    }
+
+    return {
+      id: data.id,
+      minecraft_username: data.minecraft_username,
+      assessment: {
+        playstyle: data.playstyle,
+        movement: data.movement,
+        pvp: data.pvp,
+        building: data.building,
+        projectiles: data.projectiles,
+        overall_score: Number(data.overall_score),
+        tier: data.tier as SnowfallTier
+      },
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    }
+  } catch (error) {
+    console.error("Error in getSnowfallPlayerByUsername:", error)
+    throw error
+  }
+}
+
+export async function searchSnowfallPlayers(query: string): Promise<SnowfallPlayer[]> {
+  try {
+    if (!query || query.trim().length < 2) {
+      return []
+    }
+
+    const { data, error } = await supabase
+      .from("snowfall_players")
+      .select("*")
+      .ilike("minecraft_username", `%${query.trim()}%`)
+      .order("overall_score", { ascending: false })
+      .limit(10)
+
+    if (error) {
+      console.error("Error searching Snowfall players:", error)
+      throw new Error(`Failed to search players: ${error.message}`)
+    }
+
+    return data?.map(player => ({
+      id: player.id,
+      minecraft_username: player.minecraft_username,
+      assessment: {
+        playstyle: player.playstyle,
+        movement: player.movement,
+        pvp: player.pvp,
+        building: player.building,
+        projectiles: player.projectiles,
+        overall_score: Number(player.overall_score),
+        tier: player.tier as SnowfallTier
+      },
+      created_at: player.created_at,
+      updated_at: player.updated_at
+    })) || []
+  } catch (error) {
+    console.error("Error in searchSnowfallPlayers:", error)
     throw error
   }
 }
