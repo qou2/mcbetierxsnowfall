@@ -9,6 +9,9 @@ import type { SnowfallPlayer } from '@/types/snowfall';
 interface SnowfallLeaderboardTableProps {
   players: SnowfallPlayer[];
   onPlayerClick: (player: SnowfallPlayer) => void;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  isLoadingMore?: boolean;
 }
 
 const getDeviceIcon = (device: string = 'PC') => {
@@ -78,7 +81,13 @@ const getEnhancedRankBadge = (position: number) => {
   }
 };
 
-export function SnowfallLeaderboardTable({ players, onPlayerClick }: SnowfallLeaderboardTableProps) {
+export function SnowfallLeaderboardTable({ 
+  players, 
+  onPlayerClick, 
+  onLoadMore, 
+  hasMore, 
+  isLoadingMore 
+}: SnowfallLeaderboardTableProps) {
   const isMobile = useIsMobile();
 
   const handlePlayerRowClick = (player: SnowfallPlayer) => {
@@ -176,6 +185,19 @@ export function SnowfallLeaderboardTable({ players, onPlayerClick }: SnowfallLea
             </div>
           );
         })}
+        
+        {/* Load More Button for Mobile */}
+        {hasMore && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={onLoadMore}
+              disabled={isLoadingMore}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-50 text-white rounded-lg font-medium transition-colors"
+            >
+              {isLoadingMore ? "Loading..." : "Load More Players"}
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -284,6 +306,19 @@ export function SnowfallLeaderboardTable({ players, onPlayerClick }: SnowfallLea
             </div>
           );
         })}
+        
+        {/* Load More Button */}
+        {hasMore && (
+          <div className="flex justify-center mt-8">
+            <button
+              onClick={onLoadMore}
+              disabled={isLoadingMore}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-50 text-white rounded-lg font-medium transition-colors"
+            >
+              {isLoadingMore ? "Loading..." : "Load More Players"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
