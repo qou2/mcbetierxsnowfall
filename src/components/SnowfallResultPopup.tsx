@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { useSnowfallPopup } from '@/contexts/SnowfallPopupContext';
 import { X } from 'lucide-react';
+
 export function SnowfallResultPopup() {
   const { popupData, closePopup } = useSnowfallPopup();
   const [isVisible, setIsVisible] = useState(false);
@@ -14,9 +15,13 @@ export function SnowfallResultPopup() {
     building: 0,
     projectiles: 0,
   });
+
   useEffect(() => {
     if (popupData) {
+      // Start fade-in animation
       setIsVisible(true);
+      
+      // Reset animated scores
       setAnimatedScores({
         playstyle: 0,
         movement: 0,
@@ -24,37 +29,41 @@ export function SnowfallResultPopup() {
         building: 0,
         projectiles: 0,
       });
+
+      // Start animating scores in sequence after popup is visible
       const timer = setTimeout(() => {
         const { assessment } = popupData.player;
         const skillOrder = ['playstyle', 'movement', 'pvp', 'building', 'projectiles'] as const;
-        const animationDuration = 800; 
-        const delayBetweenAnimations = 200;
+        const animationDuration = 800; // Duration for each individual animation
+        const delayBetweenAnimations = 200; // Delay between starting each animation
+        
         skillOrder.forEach((skill, index) => {
           const startDelay = index * delayBetweenAnimations;
           const targetValue = assessment[skill];
+          
           setTimeout(() => {
-            const steps = 40;
+            const steps = 40; // Number of animation steps
             const stepDuration = animationDuration / steps;
             let currentStep = 0;
-
+            
             const animateSkill = () => {
               currentStep++;
               const progress = Math.min(currentStep / steps, 1);
-
+              
               // Easing function for smooth animation
               const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
               const easedProgress = easeOutCubic(progress);
-
+              
               setAnimatedScores(prev => ({
                 ...prev,
                 [skill]: Math.round(targetValue * easedProgress)
               }));
-
+              
               if (progress < 1) {
                 setTimeout(animateSkill, stepDuration);
               }
             };
-
+            
             animateSkill();
           }, startDelay);
         });
@@ -92,14 +101,7 @@ export function SnowfallResultPopup() {
       <DialogContent className={`max-w-md mx-auto bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-2 border-white/20 text-white shadow-2xl transition-all duration-700 ease-out ${
         isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
       }`}>
-        <DialogHeader className="relative">
-          <button
-            onClick={closePopup}
-            className="absolute -top-2 -right-2 bg-red-500/80 hover:bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center transition-all duration-200 hover:scale-110 z-10"
-            aria-label="Close"
-          >
-            <X size={16} />
-          </button>
+        <DialogHeader>
           <DialogTitle className={`text-2xl font-bold text-center pt-2 bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent transition-all duration-1000 delay-300 ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}>
@@ -123,13 +125,13 @@ export function SnowfallResultPopup() {
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}>
             <h3 className="text-lg font-semibold text-center text-white/90 mb-4">Skill Breakdown</h3>
-
+            
             <div className="grid grid-cols-1 gap-3">
               <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
                 <span className="text-white/90 font-medium">Playstyle:</span>
                 <div className="flex items-center gap-2">
                   <div className="w-20 h-2 bg-gray-700 rounded-full overflow-hidden">
-                    <div
+                    <div 
                       className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300 ease-out"
                       style={{ width: `${animatedScores.playstyle}%` }}
                     />
@@ -137,12 +139,12 @@ export function SnowfallResultPopup() {
                   <span className="text-white font-bold w-8 text-right">{animatedScores.playstyle}</span>
                 </div>
               </div>
-
+              
               <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
                 <span className="text-white/90 font-medium">Movement:</span>
                 <div className="flex items-center gap-2">
                   <div className="w-20 h-2 bg-gray-700 rounded-full overflow-hidden">
-                    <div
+                    <div 
                       className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-300 ease-out"
                       style={{ width: `${animatedScores.movement}%` }}
                     />
@@ -150,12 +152,12 @@ export function SnowfallResultPopup() {
                   <span className="text-white font-bold w-8 text-right">{animatedScores.movement}</span>
                 </div>
               </div>
-
+              
               <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
                 <span className="text-white/90 font-medium">PvP:</span>
                 <div className="flex items-center gap-2">
                   <div className="w-20 h-2 bg-gray-700 rounded-full overflow-hidden">
-                    <div
+                    <div 
                       className="h-full bg-gradient-to-r from-red-500 to-pink-400 transition-all duration-300 ease-out"
                       style={{ width: `${animatedScores.pvp}%` }}
                     />
@@ -163,12 +165,12 @@ export function SnowfallResultPopup() {
                   <span className="text-white font-bold w-8 text-right">{animatedScores.pvp}</span>
                 </div>
               </div>
-
+              
               <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
                 <span className="text-white/90 font-medium">Building:</span>
                 <div className="flex items-center gap-2">
                   <div className="w-20 h-2 bg-gray-700 rounded-full overflow-hidden">
-                    <div
+                    <div 
                       className="h-full bg-gradient-to-r from-amber-500 to-yellow-400 transition-all duration-300 ease-out"
                       style={{ width: `${animatedScores.building}%` }}
                     />
@@ -176,12 +178,12 @@ export function SnowfallResultPopup() {
                   <span className="text-white font-bold w-8 text-right">{animatedScores.building}</span>
                 </div>
               </div>
-
+              
               <div className="flex justify-between items-center p-2 rounded-lg bg-white/5">
                 <span className="text-white/90 font-medium">Projectiles:</span>
                 <div className="flex items-center gap-2">
                   <div className="w-20 h-2 bg-gray-700 rounded-full overflow-hidden">
-                    <div
+                    <div 
                       className="h-full bg-gradient-to-r from-violet-500 to-purple-400 transition-all duration-300 ease-out"
                       style={{ width: `${animatedScores.projectiles}%` }}
                     />
