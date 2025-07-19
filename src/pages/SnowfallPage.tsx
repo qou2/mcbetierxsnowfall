@@ -5,8 +5,7 @@ import { Footer } from "../components/Footer"
 import { SnowfallLeaderboardTable } from "../components/SnowfallLeaderboardTable"
 import { SnowfallTierGrid } from "../components/SnowfallTierGrid"
 import { SnowfallLoadingScreen } from "../components/SnowfallLoadingScreen"
-import { useInfiniteSnowfallLeaderboard } from "../hooks/useInfiniteSnowfallLeaderboard"
-import { useInfiniteScroll } from "../hooks/useInfiniteScroll"
+import { useSnowfallLeaderboard } from "../hooks/useSnowfallLeaderboard"
 import { useSnowfallPopup } from "../contexts/SnowfallPopupContext"
 import { useNavigate } from "react-router-dom"
 import type { SnowfallPlayer } from "../types/snowfall"
@@ -16,15 +15,8 @@ const SnowfallPage = () => {
   const [selectedMode, setSelectedMode] = useState<"overall" | "skywars">("overall")
   const [showLoading, setShowLoading] = useState(true)
   
-  const { players, loading, loadingMore, error, hasMore, loadMorePlayers } = useInfiniteSnowfallLeaderboard()
+  const { players, loading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useSnowfallLeaderboard()
   const { openPopup } = useSnowfallPopup()
-
-  // Set up infinite scroll for overall tab
-  useInfiniteScroll({
-    hasMore: selectedMode === "overall" ? hasMore : false,
-    loading: loadingMore,
-    onLoadMore: loadMorePlayers
-  })
 
   // Show loading screen for minimum 2.5 seconds
   useEffect(() => {
@@ -53,7 +45,7 @@ const SnowfallPage = () => {
   if (error) {
     return (
       <div className="flex flex-col min-h-screen bg-gradient-dark">
-        <SnowfallNavbar selectedMode={selectedMode} onSelectMode={handleSelectMode} navigate={navigate} />
+        <SnowfallNavbar selectedMode={selectedMode} onSelectMode={handleSelectMode} navigate={navigate} onPlayerClick={handlePlayerClick} />
         <main className="flex-grow flex justify-center items-center">
           <div className="text-red-500 text-xl">Error: {error}</div>
         </main>
@@ -64,24 +56,38 @@ const SnowfallPage = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-dark">
-      <SnowfallNavbar selectedMode={selectedMode} onSelectMode={handleSelectMode} navigate={navigate} />
+      <SnowfallNavbar selectedMode={selectedMode} onSelectMode={handleSelectMode} navigate={navigate} onPlayerClick={handlePlayerClick} />
       
       <main className="flex-grow w-full">
         <div className="w-full px-2 py-3">
+          {/* Credit notice */}
+          <div className="mb-6 text-center">
+            <div className="bg-blue-900/20 border border-blue-400/30 rounded-lg p-4 inline-block">
+              <p className="text-blue-200 text-sm mb-1">
+                All Skywars testing and evaluation provided by{" "}
+                <a 
+                  href="https://discord.gg/hivesw" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-300 hover:text-blue-100 underline font-semibold"
+                >
+                  Snowfall
+                </a>
+              </p>
+              <p className="text-blue-300/70 text-xs">
+                Join their Discord community for more information
+              </p>
+            </div>
+          </div>
+
           {selectedMode === "overall" ? (
-            <>
-              <SnowfallLeaderboardTable players={players} onPlayerClick={handlePlayerClick} />
-              {loadingMore && (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-                </div>
-              )}
-              {!hasMore && players.length > 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  End of leaderboard
-                </div>
-              )}
-            </>
+            <SnowfallLeaderboardTable 
+              players={players} 
+              onPlayerClick={handlePlayerClick}
+              onLoadMore={fetchNextPage}
+              hasMore={hasNextPage}
+              isLoadingMore={isFetchingNextPage}
+            />
           ) : (
             <SnowfallTierGrid onPlayerClick={handlePlayerClick} />
           )}
